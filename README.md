@@ -34,3 +34,4 @@ task test-subpub unit-тесты
 3. Viper configuration
 4. Graceful shutdown
 5. Boilerplate код
+6. Errors mapping
