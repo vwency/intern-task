@@ -1,8 +1,6 @@
 package grpc
 
 import (
-	"fmt"
-
 	"github.com/go-kit/kit/endpoint"
 	subpubv1 "github.com/vwency/intern-task/proto/subpub"
 )
@@ -17,24 +15,24 @@ func makeSubscribeStreamHandler(ep endpoint.Endpoint) func(*subpubv1.SubscribeRe
 
 		resp, err := ep(ctx, req)
 		if err != nil {
-			return err
+			return convertToGRPCError(err)
 		}
 
 		msgChan, ok := resp.(<-chan *subpubv1.Message)
 		if !ok {
-			return fmt.Errorf("invalid type returned from endpoint")
+			return convertToGRPCError(ErrInvalidResponseType)
 		}
 
 		for {
 			select {
 			case <-ctx.Done():
-				return nil
+				return convertToGRPCError(ErrInvalidRequestType)
 			case msg, ok := <-msgChan:
 				if !ok {
 					return nil
 				}
 				if err := stream.Send(msg); err != nil {
-					return err
+					return convertToGRPCError(err)
 				}
 			}
 		}

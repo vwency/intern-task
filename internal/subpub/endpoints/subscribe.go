@@ -9,11 +9,15 @@ import (
 )
 
 func makeSubscribeEndpoint(s *service.SubPubService) endpoint.Endpoint {
-	return func(ctx context.Context, request interface{}) (interface{}, error) {
-		req := request.(*subpub.SubscribeRequest)
+	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
+		req, ok := request.(*subpub.SubscribeRequest)
+		if !ok {
+			return nil, ErrInvalidRequest
+		}
+
 		msgChan, err := s.Subscribe(ctx, req.Topic)
 		if err != nil {
-			return nil, err
+			return nil, convertEndpointError(err)
 		}
 
 		stream := make(chan *subpub.Message)

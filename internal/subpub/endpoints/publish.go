@@ -9,12 +9,19 @@ import (
 )
 
 func makePublishEndpoint(s *service.SubPubService) endpoint.Endpoint {
-	return func(ctx context.Context, request interface{}) (interface{}, error) {
-		req := request.(*subpub.PublishRequest)
+	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
+		req, ok := request.(*subpub.PublishRequest)
+		if !ok {
+			return nil, ErrInvalidRequest
+		}
+
 		count, err := s.Publish(ctx, req.Topic, req.Message)
 		if err != nil {
-			return nil, err
+			return nil, convertEndpointError(err)
 		}
-		return &subpub.PublishResponse{SubscriberCount: int32(count)}, nil
+
+		return &subpub.PublishResponse{
+			SubscriberCount: int32(count),
+		}, nil
 	}
 }

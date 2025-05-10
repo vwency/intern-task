@@ -9,17 +9,21 @@ import (
 )
 
 func makeUnsubscribeEndpoint(s *service.SubPubService) endpoint.Endpoint {
-	return func(ctx context.Context, request interface{}) (interface{}, error) {
-		req := request.(*subpub.UnsubscribeRequest)
-		ch := make(chan string)
+	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
+		req, ok := request.(*subpub.UnsubscribeRequest)
+		if !ok {
+			return nil, ErrInvalidRequest
+		}
 
-		err := s.Unsubscribe(ctx, req.Topic, ch)
+		ch := make(chan string)
+		err = s.Unsubscribe(ctx, req.Topic, ch)
 		if err != nil {
-			return nil, err
+			return nil, convertEndpointError(err)
 		}
 
 		close(ch)
-
-		return &subpub.UnsubscribeResponse{Success: true}, nil
+		return &subpub.UnsubscribeResponse{
+			Success: true,
+		}, nil
 	}
 }
