@@ -1,7 +1,7 @@
 version: "3"
 
 vars:
-    GO_MODULE_PATH: "github.com/vwency/microservices_golang/"
+    GO_MODULE_PATH: "github.com/vwency/intern-task/"
 
 tasks:
     run-subpub:
