@@ -15,7 +15,6 @@ func makeSubscribeStreamHandler(ep endpoint.Endpoint) func(*subpubv1.SubscribeRe
 	return func(req *subpubv1.SubscribeRequest, stream subpubv1.SubPubService_SubscribeServer) error {
 		ctx := stream.Context()
 
-		// Call the endpoint to get the message channel
 		resp, err := ep(ctx, req)
 		if err != nil {
 			return err
@@ -26,16 +25,15 @@ func makeSubscribeStreamHandler(ep endpoint.Endpoint) func(*subpubv1.SubscribeRe
 			return fmt.Errorf("invalid type returned from endpoint")
 		}
 
-		// Loop over messages and send them to the gRPC stream
 		for {
 			select {
-			case <-ctx.Done(): // If the context is canceled, stop the loop
+			case <-ctx.Done():
 				return nil
 			case msg, ok := <-msgChan:
 				if !ok {
 					return nil
 				}
-				if err := stream.Send(msg); err != nil { // Send message to the client
+				if err := stream.Send(msg); err != nil {
 					return err
 				}
 			}

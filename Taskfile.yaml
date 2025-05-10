@@ -9,25 +9,11 @@ tasks:
         cmds:
           - go run ./cmd/subpub
 
-    run-auth:
-        desc: Run hello_service
+    test-subpub:
+        desc: Run tests for client and server
         cmds:
-          - go run ./cmd/auth_service
-
-    run-database:
-        desc: Run hello_service
-        cmds:
-          - go run ./cmd/user_database
-
-    run-gateway:
-        desc: Run hello_service
-        cmds:
-          - go run ./cmd/gateway
-
-    run-jwt:
-        desc: Run jwt_service
-        cmds:
-          - go run ./cmd/jwt_service
+        - go run ./tests/subpub/server/...
+        - go run ./tests/subpub/client/...
 
     proto-generate:
         desc: Generate gRPC code from proto

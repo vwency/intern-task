@@ -2,7 +2,6 @@ package subpub
 
 import "context"
 
-// Subscribe - добавляет нового подписчика
 func (sp *SubPub) Subscribe(subject string, cb MessageHandler) *Subscriber {
 	subCtx, cancel := context.WithCancel(sp.ctx)
 	sub := &Subscriber{
@@ -19,7 +18,6 @@ func (sp *SubPub) Subscribe(subject string, cb MessageHandler) *Subscriber {
 		return nil
 	}
 
-	// Инициализируем map для subject, если его еще нет
 	if _, exists := sp.subscribers[subject]; !exists {
 		sp.subscribers[subject] = make(map[*Subscriber]struct{})
 	}

@@ -25,8 +25,8 @@ message PublishResponse {
 
 message Message {
     string content = 1;
-    string topic = 2;  // Added to identify the topic
-    int64 timestamp = 3;  // Useful for tracking message timing
+    string topic = 2;
+    int64 timestamp = 3;
 }
 
 message UnsubscribeRequest {
@@ -34,5 +34,5 @@ message UnsubscribeRequest {
 }
 
 message UnsubscribeResponse {
-    bool success = 1;  // Indicates whether the unsubscribe was successful
+    bool success = 1;
 }

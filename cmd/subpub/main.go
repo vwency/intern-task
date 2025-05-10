@@ -18,7 +18,6 @@ import (
 var Cfg config.ServiceConfig
 
 func main() {
-	// Загружаем конфигурацию, указываем путь к директории с конфигами
 	env := config.DetectEnv()
 	config.Init(env, "subpub", &Cfg)
 
@@ -29,17 +28,14 @@ func main() {
 
 	eps := endpoints.MakeEndpoints(svc)
 
-	// Создаём gRPC сервер
 	grpcServer := grpc.NewServer()
 	grpcTransport.RegisterGRPCServer(grpcServer, eps)
 
-	// Слушаем порт из конфигурации
 	lis, err := net.Listen("tcp", ":"+Cfg.App.Port)
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
 	}
 
-	// Запускаем сервер в горутине
 	go func() {
 		log.Printf("Starting gRPC server on :%s", Cfg.App.Port)
 		if err := grpcServer.Serve(lis); err != nil {

@@ -19,11 +19,9 @@ func (s *SubPubService) Unsubscribe(ctx context.Context, topic string, ch chan s
 				delete(s.streams, topic)
 			}
 
-			// Проверка на закрытый канал перед его закрытием
 			select {
 			case _, ok := <-ch:
 				if !ok {
-					// Канал уже закрыт
 					return nil
 				}
 			default:

@@ -1,27 +1,27 @@
 package subpub
 
-// Close - завершает работу Publisher
 func (sp *SubPub) Close() error {
 	sp.mu.Lock()
 	defer sp.mu.Unlock()
 
+	// Проверяем, если паблишер уже закрыт
 	if sp.closed {
 		return nil
 	}
 	sp.closed = true
 
-	// 1. Отменяем контекст - это остановит новые операции
+	// Отменяем контекст, чтобы прекратить новые публикации
 	sp.cancel()
 
-	// 2. Отписываем всех подписчиков (закроет их каналы)
+	// Отписываем всех подписчиков от всех тем
 	for subject := range sp.subscribers {
 		sp.UnsubscribeAll(subject)
 	}
 
-	// 3. Закрываем очередь сообщений
+	// Закрываем очередь сообщений
 	close(sp.msgQueue)
 
-	// 4. Ждем завершения processMessages
+	// Ожидаем завершения всех подписчиков и горутин
 	sp.wg.Wait()
 
 	return nil

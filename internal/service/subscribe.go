@@ -8,7 +8,6 @@ func (s *SubPubService) Subscribe(ctx context.Context, topic string) (chan strin
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	// Проверяем контексты перед началом работы
 	select {
 	case <-s.ctx.Done():
 		return nil, context.Canceled
@@ -28,22 +27,17 @@ func (s *SubPubService) Subscribe(ctx context.Context, topic string) (chan strin
 	}
 	s.streams[topic][msgChan] = struct{}{}
 
-	// Сохраняем подписку для последующей отписки
 	sub := s.sp.Subscribe(topic, func(msg interface{}) {
 		select {
 		case msgChan <- msg.(string):
 		case <-ctx.Done():
-			// Контекст отменен, прекращаем отправку
 		case <-s.ctx.Done():
-			// Сервис закрыт, прекращаем отправку
 		}
 	})
 
-	// Запускаем горутину для обработки отмены контекста
 	go func() {
 		select {
 		case <-ctx.Done():
-			// Отписываемся при отмене контекста
 			s.mu.Lock()
 			defer s.mu.Unlock()
 
@@ -59,7 +53,6 @@ func (s *SubPubService) Subscribe(ctx context.Context, topic string) (chan strin
 			sub.Unsubscribe()
 
 		case <-s.ctx.Done():
-			// Сервис закрыт, обработка уже идет в Close()
 		}
 	}()
 

@@ -12,8 +12,8 @@ type SubPubService struct {
 	mu      sync.RWMutex
 	streams map[string]map[chan string]struct{}
 	closed  bool
-	ctx     context.Context    // Add this field
-	cancel  context.CancelFunc // Already exists
+	ctx     context.Context
+	cancel  context.CancelFunc
 }
 
 func New(sp *subpub.SubPub) *SubPubService {
@@ -21,8 +21,8 @@ func New(sp *subpub.SubPub) *SubPubService {
 	return &SubPubService{
 		sp:      sp,
 		streams: make(map[string]map[chan string]struct{}),
-		ctx:     ctx,    // Store the context
-		cancel:  cancel, // Already storing cancel
+		ctx:     ctx,
+		cancel:  cancel,
 	}
 }
 

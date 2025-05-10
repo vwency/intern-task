@@ -1,6 +1,5 @@
 package subpub
 
-// UnsubscribeAll - удаляет всех подписчиков для указанного subject
 func (sp *SubPub) UnsubscribeAll(subject string) {
 	sp.mu.Lock()
 	defer sp.mu.Unlock()
@@ -11,8 +10,8 @@ func (sp *SubPub) UnsubscribeAll(subject string) {
 	}
 
 	for sub := range subscribers {
-		sub.cancel()  // Отменяем контекст подписчика
-		close(sub.ch) // Закрываем канал
+		sub.cancel()
+		close(sub.ch)
 		delete(subscribers, sub)
 	}
 

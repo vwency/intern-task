@@ -5,15 +5,13 @@ import (
 	"sync"
 )
 
-// Subscriber - структура подписчика
 type Subscriber struct {
-	ch     chan interface{}   // канал для сообщений
-	ctx    context.Context    // контекст подписчика
-	cancel context.CancelFunc // функция отмены контекста
-	wg     sync.WaitGroup     // для ожидания завершения обработки
+	ch     chan interface{}
+	ctx    context.Context
+	cancel context.CancelFunc
+	wg     sync.WaitGroup
 }
 
-// Unsubscribe - отписывает подписчика
 func (sub *Subscriber) Unsubscribe() {
 	if sub == nil {
 		return
@@ -22,5 +20,3 @@ func (sub *Subscriber) Unsubscribe() {
 	close(sub.ch)
 	sub.wg.Wait()
 }
-
-// UnsubscribeAll - удаляет всех подписчиков для указанного subject

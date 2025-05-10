@@ -21,7 +21,7 @@ func (s *SubPubService) Publish(ctx context.Context, topic, message string) (int
 	}
 
 	if len(s.streams[topic]) == 0 {
-		return 0, nil // Не возвращаем ошибку, если нет подписчиков
+		return 0, nil
 	}
 
 	return len(s.streams[topic]), s.sp.Publish(topic, message)
