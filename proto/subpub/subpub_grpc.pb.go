@@ -19,8 +19,9 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	SubPubService_Subscribe_FullMethodName = "/subpub.SubPubService/Subscribe"
-	SubPubService_Publish_FullMethodName   = "/subpub.SubPubService/Publish"
+	SubPubService_Subscribe_FullMethodName   = "/subpub.SubPubService/Subscribe"
+	SubPubService_Publish_FullMethodName     = "/subpub.SubPubService/Publish"
+	SubPubService_Unsubscribe_FullMethodName = "/subpub.SubPubService/Unsubscribe"
 )
 
 // SubPubServiceClient is the client API for SubPubService service.
@@ -29,6 +30,7 @@ const (
 type SubPubServiceClient interface {
 	Subscribe(ctx context.Context, in *SubscribeRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[Message], error)
 	Publish(ctx context.Context, in *PublishRequest, opts ...grpc.CallOption) (*PublishResponse, error)
+	Unsubscribe(ctx context.Context, in *UnsubscribeRequest, opts ...grpc.CallOption) (*UnsubscribeResponse, error)
 }
 
 type subPubServiceClient struct {
@@ -68,12 +70,23 @@ func (c *subPubServiceClient) Publish(ctx context.Context, in *PublishRequest, o
 	return out, nil
 }
 
+func (c *subPubServiceClient) Unsubscribe(ctx context.Context, in *UnsubscribeRequest, opts ...grpc.CallOption) (*UnsubscribeResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(UnsubscribeResponse)
+	err := c.cc.Invoke(ctx, SubPubService_Unsubscribe_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // SubPubServiceServer is the server API for SubPubService service.
 // All implementations must embed UnimplementedSubPubServiceServer
 // for forward compatibility.
 type SubPubServiceServer interface {
 	Subscribe(*SubscribeRequest, grpc.ServerStreamingServer[Message]) error
 	Publish(context.Context, *PublishRequest) (*PublishResponse, error)
+	Unsubscribe(context.Context, *UnsubscribeRequest) (*UnsubscribeResponse, error)
 	mustEmbedUnimplementedSubPubServiceServer()
 }
 
@@ -89,6 +102,9 @@ func (UnimplementedSubPubServiceServer) Subscribe(*SubscribeRequest, grpc.Server
 }
 func (UnimplementedSubPubServiceServer) Publish(context.Context, *PublishRequest) (*PublishResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Publish not implemented")
+}
+func (UnimplementedSubPubServiceServer) Unsubscribe(context.Context, *UnsubscribeRequest) (*UnsubscribeResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Unsubscribe not implemented")
 }
 func (UnimplementedSubPubServiceServer) mustEmbedUnimplementedSubPubServiceServer() {}
 func (UnimplementedSubPubServiceServer) testEmbeddedByValue()                       {}
@@ -140,6 +156,24 @@ func _SubPubService_Publish_Handler(srv interface{}, ctx context.Context, dec fu
 	return interceptor(ctx, in, info, handler)
 }
 
+func _SubPubService_Unsubscribe_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UnsubscribeRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SubPubServiceServer).Unsubscribe(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SubPubService_Unsubscribe_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SubPubServiceServer).Unsubscribe(ctx, req.(*UnsubscribeRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // SubPubService_ServiceDesc is the grpc.ServiceDesc for SubPubService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -150,6 +184,10 @@ var SubPubService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Publish",
 			Handler:    _SubPubService_Publish_Handler,
+		},
+		{
+			MethodName: "Unsubscribe",
+			Handler:    _SubPubService_Unsubscribe_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{

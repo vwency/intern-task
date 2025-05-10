@@ -9,19 +9,19 @@ import (
 )
 
 type Endpoints struct {
-	Subscribe endpoint.Endpoint
-	Publish   endpoint.Endpoint
+	Subscribe   endpoint.Endpoint
+	Publish     endpoint.Endpoint
+	Unsubscribe endpoint.Endpoint
 }
 
-// Измените параметр на указатель
 func MakeEndpoints(s *service.SubPubService) Endpoints {
 	return Endpoints{
-		Subscribe: makeSubscribeEndpoint(s),
-		Publish:   makePublishEndpoint(s),
+		Subscribe:   makeSubscribeEndpoint(s),
+		Publish:     makePublishEndpoint(s),
+		Unsubscribe: makeUnsubscribeEndpoint(s),
 	}
 }
 
-// endpoints.go (исправленная версия)
 func makeSubscribeEndpoint(s *service.SubPubService) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (interface{}, error) {
 		req := request.(*subpub.SubscribeRequest)
@@ -30,7 +30,6 @@ func makeSubscribeEndpoint(s *service.SubPubService) endpoint.Endpoint {
 			return nil, err
 		}
 
-		// Создаем канал для gRPC с правильным типом
 		stream := make(chan *subpub.Message)
 		go func() {
 			defer close(stream)
@@ -46,7 +45,7 @@ func makeSubscribeEndpoint(s *service.SubPubService) endpoint.Endpoint {
 			}
 		}()
 
-		return (<-chan *subpub.Message)(stream), nil // Явное приведение типа
+		return (<-chan *subpub.Message)(stream), nil
 	}
 }
 
@@ -58,5 +57,23 @@ func makePublishEndpoint(s *service.SubPubService) endpoint.Endpoint {
 			return nil, err
 		}
 		return &subpub.PublishResponse{SubscriberCount: int32(count)}, nil
+	}
+}
+
+func makeUnsubscribeEndpoint(s *service.SubPubService) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (interface{}, error) {
+		req := request.(*subpub.UnsubscribeRequest)
+		// Create a new channel to pass to the Unsubscribe method
+		ch := make(chan string)
+
+		// Call the Unsubscribe method with the context, topic, and channel
+		err := s.Unsubscribe(ctx, req.Topic, ch)
+		if err != nil {
+			return nil, err
+		}
+
+		close(ch)
+
+		return &subpub.UnsubscribeResponse{Success: true}, nil
 	}
 }

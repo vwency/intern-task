@@ -7,6 +7,7 @@ option go_package = "github.com/vwency/intern-task/proto/subpub";
 service SubPubService {
     rpc Subscribe (SubscribeRequest) returns (stream Message);
     rpc Publish (PublishRequest) returns (PublishResponse);
+    rpc Unsubscribe (UnsubscribeRequest) returns (UnsubscribeResponse);
 }
 
 message SubscribeRequest {
@@ -24,6 +25,14 @@ message PublishResponse {
 
 message Message {
     string content = 1;
-    string topic = 2;  // Добавлено для идентификации темы
-    int64 timestamp = 3;  // Полезно для отслеживания
+    string topic = 2;  // Added to identify the topic
+    int64 timestamp = 3;  // Useful for tracking message timing
+}
+
+message UnsubscribeRequest {
+    string topic = 1;
+}
+
+message UnsubscribeResponse {
+    bool success = 1;  // Indicates whether the unsubscribe was successful
 }
