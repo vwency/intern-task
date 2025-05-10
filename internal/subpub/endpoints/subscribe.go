@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/go-kit/kit/endpoint"
-	"github.com/vwency/intern-task/internal/service"
+	"github.com/vwency/intern-task/internal/subpub/service"
 	"github.com/vwency/intern-task/proto/subpub"
 )
 

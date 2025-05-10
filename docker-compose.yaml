@@ -2,7 +2,7 @@ services:
   subpub:
     build:
       context: .
-      dockerfile: ./deploy/Dockerfile
+      dockerfile: ./deploy/subpub/Dockerfile
     container_name: subpub
     environment:
       PORT: 50056

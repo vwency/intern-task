@@ -7,9 +7,9 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/vwency/intern-task/internal/endpoints"
-	"github.com/vwency/intern-task/internal/service"
-	grpcTransport "github.com/vwency/intern-task/internal/transport/grpc"
+	"github.com/vwency/intern-task/internal/subpub/endpoints"
+	"github.com/vwency/intern-task/internal/subpub/service"
+	grpcTransport "github.com/vwency/intern-task/internal/subpub/transport/grpc"
 	"github.com/vwency/intern-task/pkg/config"
 	"github.com/vwency/intern-task/pkg/subpub"
 	"google.golang.org/grpc"

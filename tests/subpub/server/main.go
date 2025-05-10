@@ -4,9 +4,9 @@ import (
 	"log"
 	"net"
 
-	"github.com/vwency/intern-task/internal/endpoints"
-	"github.com/vwency/intern-task/internal/service"
-	transportGrpc "github.com/vwency/intern-task/internal/transport/grpc"
+	"github.com/vwency/intern-task/internal/subpub/endpoints"
+	"github.com/vwency/intern-task/internal/subpub/service"
+	transportGrpc "github.com/vwency/intern-task/internal/subpub/transport/grpc"
 	"github.com/vwency/intern-task/pkg/subpub"
 	grpcLib "google.golang.org/grpc"
 )

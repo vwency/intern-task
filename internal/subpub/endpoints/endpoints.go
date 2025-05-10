@@ -2,7 +2,7 @@ package endpoints
 
 import (
 	"github.com/go-kit/kit/endpoint"
-	"github.com/vwency/intern-task/internal/service"
+	"github.com/vwency/intern-task/internal/subpub/service"
 )
 
 type Endpoints struct {

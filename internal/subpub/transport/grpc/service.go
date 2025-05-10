@@ -2,7 +2,7 @@ package grpc
 
 import (
 	kitgrpc "github.com/go-kit/kit/transport/grpc"
-	"github.com/vwency/intern-task/internal/endpoints"
+	"github.com/vwency/intern-task/internal/subpub/endpoints"
 	subpubv1 "github.com/vwency/intern-task/proto/subpub"
 	"google.golang.org/grpc"
 )

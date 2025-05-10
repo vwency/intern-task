@@ -2,11 +2,15 @@ module github.com/vwency/intern-task
 
 go 1.24
 
-require github.com/spf13/viper v1.20.1
+require (
+	github.com/go-kit/kit v0.13.0
+	github.com/spf13/viper v1.20.1
+	google.golang.org/grpc v1.72.0
+	google.golang.org/protobuf v1.36.5
+)
 
 require (
 	github.com/fsnotify/fsnotify v1.8.0 // indirect
-	github.com/go-kit/kit v0.13.0 // indirect
 	github.com/go-kit/log v0.2.0 // indirect
 	github.com/go-logfmt/logfmt v0.5.1 // indirect
 	github.com/go-viper/mapstructure/v2 v2.2.1 // indirect
@@ -23,7 +27,5 @@ require (
 	golang.org/x/sys v0.30.0 // indirect
 	golang.org/x/text v0.22.0 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20250218202821-56aae31c358a // indirect
-	google.golang.org/grpc v1.72.0 // indirect
-	google.golang.org/protobuf v1.36.5 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
