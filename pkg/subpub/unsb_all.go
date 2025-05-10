@@ -5,27 +5,16 @@ func (sp *SubPub) UnsubscribeAll(subject string) {
 	sp.mu.Lock()
 	defer sp.mu.Unlock()
 
-	// Быстрая проверка на закрытие
-	if sp.closed || sp.subscribers == nil {
-		return
-	}
-
 	subscribers, exists := sp.subscribers[subject]
-	if !exists || subscribers == nil {
+	if !exists {
 		return
 	}
 
-	// Создаем копию для безопасной итерации
-	subsCopy := make([]*Subscriber, 0, len(subscribers))
 	for sub := range subscribers {
-		subsCopy = append(subsCopy, sub)
+		sub.cancel()  // Отменяем контекст подписчика
+		close(sub.ch) // Закрываем канал
+		delete(subscribers, sub)
 	}
 
-	// Отписываем всех подписчиков
-	for _, sub := range subsCopy {
-		sub.Unsubscribe()
-	}
-
-	// Удаляем запись о subject
 	delete(sp.subscribers, subject)
 }

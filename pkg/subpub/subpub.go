@@ -54,16 +54,6 @@ func (sp *SubPub) processMessages() {
 	for {
 		select {
 		case <-sp.ctx.Done():
-			sp.mu.Lock()
-			// Clean up all subscribers
-			for subject, subs := range sp.subscribers {
-				for sub := range subs {
-					sub.cancel()
-					close(sub.ch)
-				}
-				delete(sp.subscribers, subject)
-			}
-			sp.mu.Unlock()
 			return
 		case msgWithSubject, ok := <-sp.msgQueue:
 			if !ok {
@@ -77,19 +67,27 @@ func (sp *SubPub) processMessages() {
 				continue
 			}
 
-			// Make a copy of subscribers to avoid issues if the map changes
+			// Создаем копию для безопасной итерации
 			subsCopy := make([]*Subscriber, 0, len(subsForSubject))
 			for sub := range subsForSubject {
-				subsCopy = append(subsCopy, sub)
+				select {
+				case <-sub.ctx.Done():
+					// Пропускаем отмененные подписки
+					continue
+				default:
+					subsCopy = append(subsCopy, sub)
+				}
 			}
 			sp.mu.RUnlock()
 
-			// Send to all subscribers
+			// Отправляем сообщения
 			for _, sub := range subsCopy {
 				select {
 				case sub.ch <- msgWithSubject.msg:
 				case <-sub.ctx.Done():
-					// Subscriber is done, skip
+					// Пропускаем если подписка отменена
+				case <-sp.ctx.Done():
+					return
 				}
 			}
 		}
