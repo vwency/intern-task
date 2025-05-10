@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"log"
 	"net"
 	"os"
@@ -11,39 +10,43 @@ import (
 	"github.com/vwency/intern-task/internal/endpoints"
 	"github.com/vwency/intern-task/internal/service"
 	grpcTransport "github.com/vwency/intern-task/internal/transport/grpc"
+	"github.com/vwency/intern-task/pkg/config"
 	"github.com/vwency/intern-task/pkg/subpub"
 	"google.golang.org/grpc"
 )
 
-func main() {
-	// Создаем core-логику
-	core := subpub.NewSubPub()
-	defer core.Close(context.Background())
+var Cfg config.ServiceConfig
 
-	// Сервисный слой
+func main() {
+	// Загружаем конфигурацию, указываем путь к директории с конфигами
+	env := config.DetectEnv()
+	config.Init(env, "subpub", &Cfg)
+
+	core := subpub.NewSubPub()
+	defer core.Close()
+
 	svc := service.New(core)
 
-	// Endpoints слой
 	eps := endpoints.MakeEndpoints(svc)
 
-	// Создаем и запускаем gRPC-сервер
+	// Создаём gRPC сервер
 	grpcServer := grpc.NewServer()
 	grpcTransport.RegisterGRPCServer(grpcServer, eps)
 
-	// Слушаем порт
-	lis, err := net.Listen("tcp", ":50051")
+	// Слушаем порт из конфигурации
+	lis, err := net.Listen("tcp", ":"+Cfg.App.Port)
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
 	}
 
+	// Запускаем сервер в горутине
 	go func() {
-		log.Println("Starting gRPC server on :50051")
+		log.Printf("Starting gRPC server on :%s", Cfg.App.Port)
 		if err := grpcServer.Serve(lis); err != nil {
 			log.Fatalf("failed to serve: %v", err)
 		}
 	}()
 
-	// Graceful shutdown
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 	<-quit

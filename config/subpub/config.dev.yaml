@@ -1,9 +1,5 @@
-grpc:
+app:
+    env: dev
     port: "50051"
-
-subpub:
-    max_subscribers: 100
-    shutdown_timeout: "10s"
-
-log:
-    level: "debug"
+    log_level: debug
+    service_name: "gateway"

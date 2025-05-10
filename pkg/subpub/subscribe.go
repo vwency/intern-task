@@ -7,6 +7,7 @@ func (sp *SubPub) Subscribe(subject string, cb MessageHandler) *Subscriber {
 	subCtx, cancel := context.WithCancel(sp.ctx)
 	sub := &Subscriber{
 		ch:     make(chan interface{}, 10),
+		ctx:    subCtx,
 		cancel: cancel,
 	}
 
@@ -18,7 +19,7 @@ func (sp *SubPub) Subscribe(subject string, cb MessageHandler) *Subscriber {
 		return nil
 	}
 
-	// Инициализируем map для subject если ее еще нет
+	// Инициализируем map для subject, если его еще нет
 	if _, exists := sp.subscribers[subject]; !exists {
 		sp.subscribers[subject] = make(map[*Subscriber]struct{})
 	}

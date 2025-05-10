@@ -18,7 +18,17 @@ func (s *SubPubService) Unsubscribe(ctx context.Context, topic string, ch chan s
 			if len(streams) == 0 {
 				delete(s.streams, topic)
 			}
-			close(ch) // Close the channel when unsubscribed
+
+			// Проверка на закрытый канал перед его закрытием
+			select {
+			case _, ok := <-ch:
+				if !ok {
+					// Канал уже закрыт
+					return nil
+				}
+			default:
+				close(ch)
+			}
 		}
 	}
 

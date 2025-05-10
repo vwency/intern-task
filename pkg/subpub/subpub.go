@@ -5,6 +5,11 @@ import (
 	"sync"
 )
 
+// MessageHandler - тип функции для обработки сообщений
+
+// Subscriber - структура подписчика
+
+// SubPub - структура для публикации и подписки
 type SubPub struct {
 	mu          sync.RWMutex
 	subscribers map[string]map[*Subscriber]struct{} // подписчики по subject
@@ -20,11 +25,16 @@ type messageWithSubject struct {
 	msg     interface{}
 }
 
+// WaitForCompletion - ожидает завершения всех задач
+func (sp *SubPub) WaitForCompletion() {
+	sp.wg.Wait()
+}
+
 // NewSubPub - создает новый Publisher
 func NewSubPub() *SubPub {
 	ctx, cancel := context.WithCancel(context.Background())
 	sp := &SubPub{
-		subscribers: make(map[string]map[*Subscriber]struct{}), // правильная инициализация
+		subscribers: make(map[string]map[*Subscriber]struct{}),
 		msgQueue:    make(chan messageWithSubject, 100),
 		ctx:         ctx,
 		cancel:      cancel,
@@ -34,12 +44,26 @@ func NewSubPub() *SubPub {
 	return sp
 }
 
-// Publish - публикует сообщение для определенного subject
+// Unsubscribe - отписывает подписчика
+
+// UnsubscribeAll - удаляет всех подписчиков для указанного subject
+
+// processMessages - обрабатывает сообщения из очереди
 func (sp *SubPub) processMessages() {
 	defer sp.wg.Done()
 	for {
 		select {
 		case <-sp.ctx.Done():
+			sp.mu.Lock()
+			// Clean up all subscribers
+			for subject, subs := range sp.subscribers {
+				for sub := range subs {
+					sub.cancel()
+					close(sub.ch)
+				}
+				delete(sp.subscribers, subject)
+			}
+			sp.mu.Unlock()
 			return
 		case msgWithSubject, ok := <-sp.msgQueue:
 			if !ok {
@@ -53,18 +77,21 @@ func (sp *SubPub) processMessages() {
 				continue
 			}
 
-			// Отправляем сообщение всем подписчикам subject
+			// Make a copy of subscribers to avoid issues if the map changes
+			subsCopy := make([]*Subscriber, 0, len(subsForSubject))
 			for sub := range subsForSubject {
-				select {
-				case sub.ch <- msgWithSubject.msg:
-				case <-sp.ctx.Done():
-					sp.mu.RUnlock()
-					return
-				default:
-					// Пропускаем медленных подписчиков
-				}
+				subsCopy = append(subsCopy, sub)
 			}
 			sp.mu.RUnlock()
+
+			// Send to all subscribers
+			for _, sub := range subsCopy {
+				select {
+				case sub.ch <- msgWithSubject.msg:
+				case <-sub.ctx.Done():
+					// Subscriber is done, skip
+				}
+			}
 		}
 	}
 }

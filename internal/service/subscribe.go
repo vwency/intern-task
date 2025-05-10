@@ -8,6 +8,15 @@ func (s *SubPubService) Subscribe(ctx context.Context, topic string) (chan strin
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
+	// Проверяем контексты перед началом работы
+	select {
+	case <-s.ctx.Done():
+		return nil, context.Canceled
+	case <-ctx.Done():
+		return nil, ctx.Err()
+	default:
+	}
+
 	if s.closed {
 		return nil, context.Canceled
 	}
@@ -19,26 +28,39 @@ func (s *SubPubService) Subscribe(ctx context.Context, topic string) (chan strin
 	}
 	s.streams[topic][msgChan] = struct{}{}
 
+	// Сохраняем подписку для последующей отписки
 	sub := s.sp.Subscribe(topic, func(msg interface{}) {
-		if str, ok := msg.(string); ok {
-			select {
-			case msgChan <- str:
-			case <-ctx.Done():
-			}
+		select {
+		case msgChan <- msg.(string):
+		case <-ctx.Done():
+			// Контекст отменен, прекращаем отправку
+		case <-s.ctx.Done():
+			// Сервис закрыт, прекращаем отправку
 		}
 	})
 
+	// Запускаем горутину для обработки отмены контекста
 	go func() {
-		<-ctx.Done()
-		sub.Unsubscribe()
+		select {
+		case <-ctx.Done():
+			// Отписываемся при отмене контекста
+			s.mu.Lock()
+			defer s.mu.Unlock()
 
-		s.mu.Lock()
-		defer s.mu.Unlock()
-		delete(s.streams[topic], msgChan)
-		if len(s.streams[topic]) == 0 {
-			delete(s.streams, topic)
+			if _, exists := s.streams[topic]; exists {
+				if _, chExists := s.streams[topic][msgChan]; chExists {
+					delete(s.streams[topic], msgChan)
+					if len(s.streams[topic]) == 0 {
+						delete(s.streams, topic)
+					}
+					close(msgChan)
+				}
+			}
+			sub.Unsubscribe()
+
+		case <-s.ctx.Done():
+			// Сервис закрыт, обработка уже идет в Close()
 		}
-		close(msgChan)
 	}()
 
 	return msgChan, nil

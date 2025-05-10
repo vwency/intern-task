@@ -1,14 +1,10 @@
 package config
 
-type AppConfig struct {
-	GRPC struct {
-		Port string `mapstructure:"port"`
-	} `mapstructure:"grpc"`
-	SubPub struct {
-		MaxSubscribers  int    `mapstructure:"max_subscribers"`
-		ShutdownTimeout string `mapstructure:"shutdown_timeout"`
-	} `mapstructure:"subpub"`
-	Log struct {
-		Level string `mapstructure:"level"`
-	} `mapstructure:"log"`
+type ServiceConfig struct {
+	App struct {
+		Env         string `mapstructure:"env"`
+		Port        string `mapstructure:"port"`
+		LogLevel    string `mapstructure:"log_level"`
+		ServiceName string `mapstructure:"service_name"`
+	} `mapstructure:"app"`
 }

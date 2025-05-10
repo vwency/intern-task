@@ -2,34 +2,38 @@ package config
 
 import (
 	"fmt"
+	"log"
+	"os"
 
 	"github.com/spf13/viper"
 )
 
-func Load(configPath string) (*AppConfig, error) {
-	v := viper.New()
-
-	// Базовый конфиг
-	v.SetConfigName("config")
-	v.AddConfigPath(configPath)
-	if err := v.ReadInConfig(); err != nil {
-		return nil, fmt.Errorf("failed to read base config: %w", err)
+func Init(env, servicePath string, cfg any) {
+	if env == "" {
+		env = os.Getenv("ENV")
 	}
 
-	// Загрузка env-специфичного конфига
-	env := DetectEnv()
-	if env != "" {
-		envConfigName := fmt.Sprintf("config.%s", env)
-		v.SetConfigName(envConfigName)
-		if err := v.MergeInConfig(); err != nil {
-			return nil, fmt.Errorf("failed to merge %s config: %w", env, err)
-		}
+	if env == "" {
+		viper.SetConfigName("config")
+	} else {
+		viper.SetConfigName("config." + env)
 	}
 
-	var cfg AppConfig
-	if err := v.Unmarshal(&cfg); err != nil {
-		return nil, fmt.Errorf("failed to unmarshal config: %w", err)
+	viper.SetConfigType("yaml")
+
+	viper.AddConfigPath(fmt.Sprintf("./config/%s", servicePath))
+	viper.AddConfigPath(fmt.Sprintf("/app/config/%s", servicePath))
+	viper.AddConfigPath(".")
+
+	if err := viper.ReadInConfig(); err != nil {
+		log.Fatalf("Error reading config file: %v", err)
 	}
 
-	return &cfg, nil
+	viper.AutomaticEnv()
+
+	if err := viper.Unmarshal(cfg); err != nil {
+		log.Fatalf("Unable to decode into struct: %v", err)
+	}
+
+	fmt.Printf("[CONFIG] Loaded config: %s\n", viper.ConfigFileUsed())
 }
