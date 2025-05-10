@@ -17,7 +17,7 @@ task run-subpub
 ### Test
 
 ```
-task test-subpub-server что бы сервер протестировать который запущен
+task test-subpub-server     что бы сервер протестировать который запущен(то есть надо запустить)
 task test-subpub unit-тесты
 ```
 
