@@ -4,10 +4,10 @@ vars:
     GO_MODULE_PATH: "github.com/vwency/microservices_golang/"
 
 tasks:
-    run-hello_service:
+    run-subpub:
         desc: Run hello_service
         cmds:
-          - go run ./cmd/hello_service
+          - go run ./cmd/subpub
 
     run-auth:
         desc: Run hello_service

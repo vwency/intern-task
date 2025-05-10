@@ -8,34 +8,34 @@ import (
 	"os/signal"
 	"syscall"
 
-	"google.golang.org/grpc"
-
-	transportgrpc "github.com/vwency/intern-task/internal/transport/grpc"
+	"github.com/vwency/intern-task/internal/endpoints"
+	"github.com/vwency/intern-task/internal/service"
+	grpcTransport "github.com/vwency/intern-task/internal/transport/grpc"
 	"github.com/vwency/intern-task/pkg/subpub"
-	pb "github.com/vwency/intern-task/proto/subpub"
+	"google.golang.org/grpc"
 )
 
 func main() {
-	// Create core SubPub instance
-	core := subpub.New()
+	// Создаем core-логику
+	core := subpub.NewSubPub()
+	defer core.Close(context.Background())
 
-	// Create gRPC service with all handlers
-	grpcService := transportgrpc.NewGRPCService(core)
+	// Сервисный слой
+	svc := service.New(core)
 
-	// Create and configure gRPC server
+	// Endpoints слой
+	eps := endpoints.MakeEndpoints(svc)
+
+	// Создаем и запускаем gRPC-сервер
 	grpcServer := grpc.NewServer()
-	pb.RegisterSubPubServiceServer(grpcServer, &grpcServerWrapper{
-		subscribeHandler: grpcService.SubscribeHandler,
-		publishHandler:   grpcService.PublishHandler,
-	})
+	grpcTransport.RegisterGRPCServer(grpcServer, eps)
 
-	// Start listening
+	// Слушаем порт
 	lis, err := net.Listen("tcp", ":50051")
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
 	}
 
-	// Start server in goroutine
 	go func() {
 		log.Println("Starting gRPC server on :50051")
 		if err := grpcServer.Serve(lis); err != nil {
@@ -43,31 +43,11 @@ func main() {
 		}
 	}()
 
-	// Setup graceful shutdown
+	// Graceful shutdown
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 	<-quit
-	log.Println("Shutting down server gracefully...")
+	log.Println("Shutting down server...")
 	grpcServer.GracefulStop()
 	log.Println("Server stopped")
-}
-
-// grpcServerWrapper implements pb.SubPubServiceServer
-type grpcServerWrapper struct {
-	pb.UnimplementedSubPubServiceServer
-	subscribeHandler kitgrpc.Handler
-	publishHandler   kitgrpc.Handler
-}
-
-func (s *grpcServerWrapper) Subscribe(req *pb.SubscribeRequest, stream pb.SubPubService_SubscribeServer) error {
-	_, err := s.subscribeHandler.ServeGRPC(stream.Context(), req)
-	return err
-}
-
-func (s *grpcServerWrapper) Publish(ctx context.Context, req *pb.PublishRequest) (*pb.PublishResponse, error) {
-	resp, err := s.publishHandler.ServeGRPC(ctx, req)
-	if err != nil {
-		return nil, err
-	}
-	return resp.(*pb.PublishResponse), nil
 }

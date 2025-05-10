@@ -21,6 +21,7 @@ func MakeEndpoints(s *service.SubPubService) Endpoints {
 	}
 }
 
+// endpoints.go (исправленная версия)
 func makeSubscribeEndpoint(s *service.SubPubService) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (interface{}, error) {
 		req := request.(*subpub.SubscribeRequest)
@@ -29,19 +30,23 @@ func makeSubscribeEndpoint(s *service.SubPubService) endpoint.Endpoint {
 			return nil, err
 		}
 
-		// Create a channel for gRPC stream
+		// Создаем канал для gRPC с правильным типом
 		stream := make(chan *subpub.Message)
 		go func() {
 			defer close(stream)
 			for msg := range msgChan {
-				stream <- &subpub.Message{
+				select {
+				case stream <- &subpub.Message{
 					Content: msg,
 					Topic:   req.Topic,
+				}:
+				case <-ctx.Done():
+					return
 				}
 			}
 		}()
 
-		return stream, nil
+		return (<-chan *subpub.Message)(stream), nil // Явное приведение типа
 	}
 }
 
