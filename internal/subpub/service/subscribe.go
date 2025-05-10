@@ -2,6 +2,11 @@ package service
 
 import (
 	"context"
+	"strings"
+)
+
+const (
+	maxTopicLength = 256
 )
 
 func (s *SubPubService) Subscribe(ctx context.Context, topic string) (chan string, error) {
@@ -10,14 +15,21 @@ func (s *SubPubService) Subscribe(ctx context.Context, topic string) (chan strin
 
 	select {
 	case <-s.ctx.Done():
-		return nil, context.Canceled
+		return nil, ErrServiceClosed
 	case <-ctx.Done():
 		return nil, ctx.Err()
 	default:
 	}
 
 	if s.closed {
-		return nil, context.Canceled
+		return nil, ErrServiceClosed
+	}
+
+	if strings.TrimSpace(topic) == "" {
+		return nil, ErrInvalidTopic
+	}
+	if len(topic) > maxTopicLength {
+		return nil, ErrTopicTooLong
 	}
 
 	msgChan := make(chan string, 10)

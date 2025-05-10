@@ -25,7 +25,7 @@ func encodeUnsubscribeResponse(_ context.Context, response interface{}) (interfa
 func (s *grpcServer) Unsubscribe(ctx context.Context, req *subpubv1.UnsubscribeRequest) (*subpubv1.UnsubscribeResponse, error) {
 	_, resp, err := s.unsubscribe.ServeGRPC(ctx, req)
 	if err != nil {
-		return nil, convertToGRPCError(err)
+		return nil, ConvertToGRPCError(err)
 	}
 	return resp.(*subpubv1.UnsubscribeResponse), nil
 }

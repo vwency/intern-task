@@ -15,24 +15,24 @@ func makeSubscribeStreamHandler(ep endpoint.Endpoint) func(*subpubv1.SubscribeRe
 
 		resp, err := ep(ctx, req)
 		if err != nil {
-			return convertToGRPCError(err)
+			return ConvertToGRPCError(err)
 		}
 
 		msgChan, ok := resp.(<-chan *subpubv1.Message)
 		if !ok {
-			return convertToGRPCError(ErrInvalidResponseType)
+			return ConvertToGRPCError(ErrInvalidResponseType)
 		}
 
 		for {
 			select {
 			case <-ctx.Done():
-				return convertToGRPCError(ErrInvalidRequestType)
+				return ConvertToGRPCError(ErrInvalidRequestType)
 			case msg, ok := <-msgChan:
 				if !ok {
 					return nil
 				}
 				if err := stream.Send(msg); err != nil {
-					return convertToGRPCError(err)
+					return ConvertToGRPCError(err)
 				}
 			}
 		}

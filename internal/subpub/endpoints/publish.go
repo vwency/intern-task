@@ -17,7 +17,7 @@ func makePublishEndpoint(s *service.SubPubService) endpoint.Endpoint {
 
 		count, err := s.Publish(ctx, req.Topic, req.Message)
 		if err != nil {
-			return nil, convertEndpointError(err)
+			return nil, ConvertServiceError(err)
 		}
 
 		return &subpub.PublishResponse{

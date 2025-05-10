@@ -18,7 +18,7 @@ func makeUnsubscribeEndpoint(s *service.SubPubService) endpoint.Endpoint {
 		ch := make(chan string)
 		err = s.Unsubscribe(ctx, req.Topic, ch)
 		if err != nil {
-			return nil, convertEndpointError(err)
+			return nil, ConvertServiceError(err)
 		}
 
 		close(ch)

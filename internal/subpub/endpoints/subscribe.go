@@ -17,7 +17,7 @@ func makeSubscribeEndpoint(s *service.SubPubService) endpoint.Endpoint {
 
 		msgChan, err := s.Subscribe(ctx, req.Topic)
 		if err != nil {
-			return nil, convertEndpointError(err)
+			return nil, ConvertServiceError(err)
 		}
 
 		stream := make(chan *subpub.Message)

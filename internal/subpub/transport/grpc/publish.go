@@ -25,7 +25,7 @@ func encodePublishResponse(_ context.Context, response interface{}) (interface{}
 func (s *grpcServer) Publish(ctx context.Context, req *subpubv1.PublishRequest) (*subpubv1.PublishResponse, error) {
 	_, resp, err := s.publish.ServeGRPC(ctx, req)
 	if err != nil {
-		return nil, convertToGRPCError(err)
+		return nil, ErrInvalidRequestType
 	}
 	return resp.(*subpubv1.PublishResponse), nil
 }
