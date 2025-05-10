@@ -7,8 +7,8 @@ import (
 
 type SubPub struct {
 	mu          sync.RWMutex
-	subscribers map[string]map[*Subscriber]struct{} // подписчики по subject
-	msgQueue    chan messageWithSubject             // канал для сообщений с subject
+	subscribers map[string]map[*Subscriber]struct{}
+	msgQueue    chan messageWithSubject
 	ctx         context.Context
 	cancel      context.CancelFunc
 	wg          sync.WaitGroup
@@ -21,6 +21,7 @@ type messageWithSubject struct {
 }
 
 func (sp *SubPub) WaitForCompletion() {
+	// Wait for processMessages to finish
 	sp.wg.Wait()
 }
 
@@ -55,6 +56,7 @@ func (sp *SubPub) processMessages() {
 				continue
 			}
 
+			// Create a copy of subscribers to avoid holding the lock
 			subsCopy := make([]*Subscriber, 0, len(subsForSubject))
 			for sub := range subsForSubject {
 				select {
@@ -66,6 +68,7 @@ func (sp *SubPub) processMessages() {
 			}
 			sp.mu.RUnlock()
 
+			// Deliver messages without holding the lock
 			for _, sub := range subsCopy {
 				select {
 				case sub.ch <- msgWithSubject.msg:

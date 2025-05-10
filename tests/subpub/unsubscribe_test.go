@@ -3,12 +3,14 @@ package tests
 import (
 	"sync"
 	"testing"
+	"time"
 
-	"github.com/vwency/intern-task/pkg/subpub" // Замените на правильный путь к пакету
+	"github.com/vwency/intern-task/pkg/subpub"
 )
 
 func TestUnsubscribe(t *testing.T) {
 	sp := subpub.NewSubPub()
+	defer sp.Close()
 
 	// Create multiple subscribers
 	var msgReceived1, msgReceived2 interface{}
@@ -26,21 +28,21 @@ func TestUnsubscribe(t *testing.T) {
 
 	// Подписка на сообщения
 	sub1 := sp.Subscribe("testSubject", handler1)
-	sub2 := sp.Subscribe("testSubject", handler2) // Используем sub2
+	sub2 := sp.Subscribe("testSubject", handler2)
 
-	// Увеличиваем счетчик ожидания для двух подписчиков
+	// Первая публикация - ожидаем 2 сообщения
 	wg.Add(2)
-
-	// Publish a message
 	err := sp.Publish("testSubject", "Message for all subscribers")
 	if err != nil {
 		t.Fatalf("Failed to publish message: %v", err)
 	}
 
-	// Ожидаем, пока оба подписчика получат сообщение
-	wg.Wait()
+	// Ожидаем с таймаутом
+	if waitWithTimeout(&wg, 1*time.Second) {
+		t.Fatal("Timeout waiting for initial messages")
+	}
 
-	// Проверка, что оба подписчика получили сообщение
+	// Проверка получения сообщений
 	if msgReceived1 != "Message for all subscribers" {
 		t.Fatalf("Subscriber 1 didn't receive the message")
 	}
@@ -48,26 +50,40 @@ func TestUnsubscribe(t *testing.T) {
 		t.Fatalf("Subscriber 2 didn't receive the message")
 	}
 
-	// Отписываем первого подписчика
+	// Отписываем подписчиков
 	sub1.Unsubscribe()
-	// Отписываем второго подписчика, чтобы использовать sub2
 	sub2.Unsubscribe()
 
-	// Обнуляем полученные сообщения для следующего теста
+	// Сбрасываем состояние
 	msgReceived1, msgReceived2 = nil, nil
 
-	// Publish another message after unsubscribing both subscribers
+	// Новая публикация после отписки
 	err = sp.Publish("testSubject", "Message after unsubscribe")
 	if err != nil {
 		t.Fatalf("Failed to publish message: %v", err)
 	}
 
-	// Ожидаем, пока второй подписчик получит сообщение
-	wg.Add(1)
-	wg.Wait()
+	// Даем небольшое время на обработку (если бы подписчики были активны)
+	time.Sleep(100 * time.Millisecond)
 
-	// Проверка, что ни один подписчик не получил сообщение
+	// Проверка, что сообщения не получены
 	if msgReceived1 != nil || msgReceived2 != nil {
 		t.Fatalf("No subscriber should have received the message after unsubscribe")
+	}
+}
+
+// Вспомогательная функция для ожидания с таймаутом
+func waitWithTimeout(wg *sync.WaitGroup, timeout time.Duration) bool {
+	c := make(chan struct{})
+	go func() {
+		defer close(c)
+		wg.Wait()
+	}()
+
+	select {
+	case <-c:
+		return false // completed normally
+	case <-time.After(timeout):
+		return true // timed out
 	}
 }

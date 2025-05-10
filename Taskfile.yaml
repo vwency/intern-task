@@ -12,9 +12,8 @@ tasks:
     test-subpub:
         desc: Run tests for client and server
         cmds:
-        - go run ./tests/subpub/server/...
-        - go run ./tests/subpub/client/...
-
+        - go test ./tests/subpub/
+        
     proto-generate:
         desc: Generate gRPC code from proto
         cmds:
