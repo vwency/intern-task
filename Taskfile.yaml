@@ -5,7 +5,7 @@ vars:
 
 tasks:
     run-subpub:
-        desc: Run hello_service
+        desc: Run subpub
         cmds:
           - go run ./cmd/subpub
 
@@ -13,7 +13,12 @@ tasks:
         desc: Run tests for client and server
         cmds:
         - go test ./tests/subpub/
-        
+  
+    test-subpub-server:
+      desc: Run tests for client and server
+      cmds:
+      - go run ./tests/subpub/client
+
     proto-generate:
         desc: Generate gRPC code from proto
         cmds:

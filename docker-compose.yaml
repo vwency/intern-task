@@ -1,0 +1,22 @@
+services:
+  subpub:
+    build:
+      context: .
+      dockerfile: ./deploy/Dockerfile
+    container_name: subpub
+    environment:
+      PORT: 50056
+      LOG_LEVEL: debug
+    ports:
+      - "50051:50051"
+    networks:
+      app_network:
+        ipv4_address: 192.168.1.4
+
+networks:
+  app_network:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: "192.168.1.0/24"
