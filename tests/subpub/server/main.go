@@ -1,33 +1,27 @@
 package main
 
 import (
-	"context"
 	"log"
 	"net"
 
 	"github.com/vwency/intern-task/internal/endpoints"
 	"github.com/vwency/intern-task/internal/service"
-	transportGrpc "github.com/vwency/intern-task/internal/transport/grpc" // Renamed import
+	transportGrpc "github.com/vwency/intern-task/internal/transport/grpc"
 	"github.com/vwency/intern-task/pkg/subpub"
-	grpcLib "google.golang.org/grpc" // Renamed import to avoid conflict
+	grpcLib "google.golang.org/grpc"
 )
 
 func main() {
-	// Create core logic
 	core := subpub.NewSubPub()
-	defer core.Close(context.Background())
+	defer core.Close()
 
-	// Service layer
 	svc := service.New(core)
 
-	// Endpoints layer
 	eps := endpoints.MakeEndpoints(svc)
 
-	// Create and run gRPC server
-	grpcServer := grpcLib.NewServer()                 // Using the renamed import
-	transportGrpc.RegisterGRPCServer(grpcServer, eps) // Using the renamed import
+	grpcServer := grpcLib.NewServer()
+	transportGrpc.RegisterGRPCServer(grpcServer, eps)
 
-	// Listen on port
 	lis, err := net.Listen("tcp", ":50051")
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
