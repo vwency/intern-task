@@ -9,8 +9,8 @@ Or you can manually (bare-metal)
 ```
 go install github.com/go-task/task/v3/cmd/task@latest (possible if not installed)
 go mod download
-go mod vendor
 go mod tidy
+go mod vendor
 task run-subpub
 ```
 
