@@ -5,7 +5,7 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/vwency/intern-task/pkg/subpub" // Замените на правильный путь к пакету
+	"github.com/vwency/intern-task/pkg/subpub"
 )
 
 func TestCloseWithSubscribers(t *testing.T) {

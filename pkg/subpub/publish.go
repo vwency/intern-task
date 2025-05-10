@@ -13,7 +13,7 @@ func (sp *SubPub) Publish(subject string, msg interface{}) error {
 	}
 
 	select {
-	case sp.msgQueue <- messageWithSubject{subject: subject, msg: msg}: // Если очередь не закрыта
+	case sp.msgQueue <- messageWithSubject{subject: subject, msg: msg}:
 		return nil
 	case <-sp.ctx.Done():
 		return sp.ctx.Err()

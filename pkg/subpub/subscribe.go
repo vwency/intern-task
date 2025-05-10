@@ -29,7 +29,7 @@ func (sp *SubPub) Subscribe(subject string, cb MessageHandler) *Subscriber {
 		defer sub.wg.Done()
 		for {
 			select {
-			case <-subCtx.Done(): // Прерываем цикл, если контекст подписчика отменен
+			case <-subCtx.Done():
 				return
 			case msg, ok := <-sub.ch:
 				if !ok {

@@ -13,4 +13,3 @@ type Subscriber struct {
 	wg     sync.WaitGroup
 	closed atomic.Bool
 }
-

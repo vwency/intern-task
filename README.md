@@ -10,6 +10,7 @@ Or you can manually (bare-metal)
 go install github.com/go-task/task/v3/cmd/task@latest (possible if not installed)
 go mod download
 go mod vendor
+go mod tidy
 task run-subpub
 ```
 
@@ -24,3 +25,12 @@ task test-subpub unit-тесты
 
 1. Graceful shutdown
 2. go-kit (gRPC)
+3. Viper configuration
+
+### Структура (Архитектура)
+
+1. Микросервисная архитектура
+2. Использование endpoints transport service слоев go-kit
+3. Viper configuration
+4. Graceful shutdown
+5. Boilerplate код
