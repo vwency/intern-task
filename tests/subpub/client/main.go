@@ -11,7 +11,6 @@ import (
 )
 
 func main() {
-	// Set up a connection to the server.
 	conn, err := grpc.Dial("localhost:50051", grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		log.Fatalf("did not connect: %v", err)
@@ -19,11 +18,9 @@ func main() {
 	defer conn.Close()
 	c := subpub.NewSubPubServiceClient(conn)
 
-	// Create a cancellable context with timeout
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
-	// Start subscription in a goroutine
 	subscriptionChan := make(chan struct{})
 	streamDone := make(chan struct{})
 	go func() {
@@ -32,13 +29,11 @@ func main() {
 		stream, err := c.Subscribe(ctx, &subpub.SubscribeRequest{Topic: "test-topic"})
 		if err != nil {
 			log.Printf("could not subscribe: %v", err)
-			close(subscriptionChan) // Ensure we don't block if subscription fails
+			close(subscriptionChan)
 			return
 		}
-		// Notify that subscription is successful
 		close(subscriptionChan)
 
-		// Loop to receive messages
 		for {
 			msg, err := stream.Recv()
 			if err != nil {
@@ -54,11 +49,9 @@ func main() {
 		}
 	}()
 
-	// Wait until subscription is successfully established or fails
 	<-subscriptionChan
 	log.Println("Subscription attempt completed")
 
-	// Test Publish
 	for i := 0; i < 5; i++ {
 		resp, err := c.Publish(ctx, &subpub.PublishRequest{
 			Topic:   "test-topic",
@@ -72,17 +65,14 @@ func main() {
 		time.Sleep(2 * time.Second)
 	}
 
-	// Test Unsubscribe after all messages
 	_, err = c.Unsubscribe(ctx, &subpub.UnsubscribeRequest{Topic: "test-topic"})
 	if err != nil {
 		log.Printf("could not unsubscribe: %v", err)
 	}
 
-	// Graceful shutdown
 	log.Println("Initiating graceful shutdown...")
-	cancel() // Cancel the context first
+	cancel()
 
-	// Wait for the stream to finish
 	select {
 	case <-streamDone:
 		log.Println("Stream closed gracefully")
@@ -90,7 +80,6 @@ func main() {
 		log.Println("Timeout waiting for stream to close")
 	}
 
-	// Close the client connection
 	if err := conn.Close(); err != nil {
 		log.Printf("error closing connection: %v", err)
 	}

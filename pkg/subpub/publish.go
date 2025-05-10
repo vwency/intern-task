@@ -5,19 +5,17 @@ import (
 )
 
 func (sp *SubPub) Publish(subject string, msg interface{}) error {
-	sp.mu.RLock() // Получаем блокировку на чтение
+	sp.mu.RLock()
 	defer sp.mu.RUnlock()
 
-	// Проверяем, был ли паблишер закрыт
 	if sp.closed {
 		return context.Canceled
 	}
 
-	// Публикуем сообщение в очередь для всех подписчиков
 	select {
 	case sp.msgQueue <- messageWithSubject{subject: subject, msg: msg}: // Если очередь не закрыта
 		return nil
-	case <-sp.ctx.Done(): // Если контекст завершен, возвращаем ошибку
+	case <-sp.ctx.Done():
 		return sp.ctx.Err()
 	}
 }

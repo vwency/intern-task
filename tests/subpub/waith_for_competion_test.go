@@ -30,30 +30,23 @@ func TestWaitForCompletion(t *testing.T) {
 		close(received)
 	}
 
-	// Subscribe
 	sp.Subscribe("testSubject", handler)
 
-	// Publish a message
 	err := sp.Publish("testSubject", "Message for subscriber")
 	if err != nil {
 		t.Fatalf("Failed to publish message: %v", err)
 	}
 
-	// Wait for the message to be processed with timeout
 	select {
 	case <-received:
-		// Message processed successfully
 	case <-time.After(1 * time.Second):
 		t.Fatal("Timeout waiting for message processing")
 	}
 
-	// Wait for handler goroutine
 	wg.Wait()
 
-	// Verify the message was received
 	if msgReceived != "Message for subscriber" {
 		t.Fatalf("Subscriber didn't receive the correct message, got: %v", msgReceived)
 	}
 
-	// sp.Close() already waits for background goroutines
 }

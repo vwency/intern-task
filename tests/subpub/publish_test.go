@@ -27,14 +27,12 @@ func TestPubSubLifecycle(t *testing.T) {
 			msgReceived = msg
 		}
 
-		// Subscribe and publish
 		sp.Subscribe("test", handler)
 		err := sp.Publish("test", "test message")
 		if err != nil {
 			t.Fatalf("Publish failed: %v", err)
 		}
 
-		// Wait with timeout
 		if waitWithTimeout(&wg, timeout) {
 			t.Fatal("Timeout waiting for message")
 		}
@@ -47,7 +45,6 @@ func TestPubSubLifecycle(t *testing.T) {
 	t.Run("publish after close", func(t *testing.T) {
 		sp := subpub.NewSubPub()
 
-		// Subscribe to collect messages
 		var wg sync.WaitGroup
 		wg.Add(1)
 		sp.Subscribe("test", func(msg interface{}) {
@@ -55,21 +52,17 @@ func TestPubSubLifecycle(t *testing.T) {
 			t.Logf("Received initial message: %v", msg)
 		})
 
-		// Initial publish
 		err := sp.Publish("test", "initial message")
 		if err != nil {
 			t.Fatalf("Initial publish failed: %v", err)
 		}
 
-		// Wait for initial message
 		if waitWithTimeout(&wg, 1*time.Second) {
 			t.Fatal("Timeout waiting for initial message")
 		}
 
-		// Close the pubsub
 		sp.Close()
 
-		// Try to publish after close
 		err = sp.Publish("test", "should fail")
 		if err == nil {
 			t.Fatal("Expected error when publishing after close, got nil")
