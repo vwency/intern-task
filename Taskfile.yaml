@@ -12,7 +12,7 @@ tasks:
     test-subpub:
         desc: Run tests for client and server
         cmds:
-        - go test ./tests/subpub/
+        - go test ./tests/subpub/unit
   
     test-subpub-server:
       desc: Run tests for client and server
