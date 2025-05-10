@@ -1,11 +1,11 @@
 package service
 
-func (s *SubPubService) Close() {
+func (s *SubPubService) Close() error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
 	if s.closed {
-		return
+		return ErrServiceClosed
 	}
 
 	s.closed = true
@@ -20,10 +20,19 @@ func (s *SubPubService) Close() {
 
 	for topic, streams := range s.streams {
 		for ch := range streams {
-			close(ch)
+			select {
+			case _, ok := <-ch:
+				if !ok {
+					continue
+				}
+			default:
+				close(ch)
+			}
 		}
 		delete(s.streams, topic)
 	}
 
 	s.sp.WaitForCompletion()
+
+	return nil
 }
