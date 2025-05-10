@@ -5,8 +5,8 @@ services:
       dockerfile: ./deploy/subpub/Dockerfile
     container_name: subpub
     environment:
-      PORT: 50056
-      LOG_LEVEL: debug
+      APP_PORT: 50051
+      APP_LOG_LEVEL: debug
     ports:
       - "50051:50051"
     networks:
