@@ -1,0 +1,29 @@
+syntax = "proto3";
+
+package subpub;
+
+option go_package = "github.com/vwency/intern-task/proto/subpub";
+
+service SubPubService {
+    rpc Subscribe (SubscribeRequest) returns (stream Message);
+    rpc Publish (PublishRequest) returns (PublishResponse);
+}
+
+message SubscribeRequest {
+    string topic = 1;
+}
+
+message PublishRequest {
+    string topic = 1;
+    string message = 2;
+}
+
+message PublishResponse {
+    int32 subscriber_count = 1;
+}
+
+message Message {
+    string content = 1;
+    string topic = 2;  // Добавлено для идентификации темы
+    int64 timestamp = 3;  // Полезно для отслеживания
+}

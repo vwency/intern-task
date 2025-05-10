@@ -1,0 +1,59 @@
+version: "3"
+
+vars:
+    GO_MODULE_PATH: "github.com/vwency/microservices_golang/"
+
+tasks:
+    run-hello_service:
+        desc: Run hello_service
+        cmds:
+          - go run ./cmd/hello_service
+
+    run-auth:
+        desc: Run hello_service
+        cmds:
+          - go run ./cmd/auth_service
+
+    run-database:
+        desc: Run hello_service
+        cmds:
+          - go run ./cmd/user_database
+
+    run-gateway:
+        desc: Run hello_service
+        cmds:
+          - go run ./cmd/gateway
+
+    run-jwt:
+        desc: Run jwt_service
+        cmds:
+          - go run ./cmd/jwt_service
+
+    proto-generate:
+        desc: Generate gRPC code from proto
+        cmds:
+          - protoc --proto_path=./proto --go_out=./proto --go-grpc_out=./proto --go_opt=paths=source_relative --go-grpc_opt=paths=source_relative ./proto/**/*.proto
+
+    generate-gomod:
+        desc: Generate go.mod preserving requirements
+        cmds:
+          - chmod +x ./generate_gomod.sh
+          - ./generate_gomod.sh
+          - go mod edit -fmt
+
+    update-deps:
+        desc: Update dependencies list
+        cmds:
+          - go mod tidy
+          - chmod +x ./update_deps.sh
+          - ./update_deps.sh
+          - go mod edit -fmt
+          - go mod vendor
+
+    clean-unused-deps:
+        desc: Remove unnecessary dependencies from go.mod and go.sum
+        cmds:
+          - go mod tidy
+          - go mod vendor
+          - go mod verify
+          - echo "Unused dependencies removed successfully"

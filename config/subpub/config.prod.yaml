@@ -1,0 +1,9 @@
+grpc:
+    port: "50051"
+
+subpub:
+    max_subscribers: 1000
+    shutdown_timeout: "30s"
+
+log:
+    level: "warn"
